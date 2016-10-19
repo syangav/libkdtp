@@ -1151,9 +1151,9 @@ namespace kdtp {
     }
 
     if (time > durations_[F] - EPSILON) {
-      ret[0] = init_[0];
-      ret[1] = init_[1];
-      ret[2] = init_[2];
+      ret[0] = end_[0];
+      ret[1] = end_[1];
+      ret[2] = end_[2];
       ret[3] = 0.;
       ret[4] = -signs_[H] * getSnapMax();
       return ret;
