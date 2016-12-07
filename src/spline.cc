@@ -449,11 +449,10 @@ namespace kdtp {
         }
       }
     }
-    n--;
 
     int_a_abc_.push_back(tmp[0]);
     int_v_abc_.push_back(v_c(tmp[0], 0., false));
-    for(int k = 1; k <= n; k++) {
+    for(int k = 1; k < n; k++) {
       double a1 = tmp[k-1];
       double a2 = tmp[k];
       int_a_abc_.push_back(a2);
@@ -494,11 +493,10 @@ namespace kdtp {
         }
       }
     }
-    n--;
 
     int_a_egh_.push_back(tmp[0]);
     int_v_egh_.push_back(v_e(tmp[0], 0., false));
-    for(int k = 1; k <= n; k++) {
+    for(int k = 1; k < n; k++) {
       double a1 = tmp[k-1];
       double a2 = tmp[k];
       int_a_egh_.push_back(a2);
