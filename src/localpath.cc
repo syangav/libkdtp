@@ -20,15 +20,13 @@ namespace kdtp {
 
   LocalPath::LocalPath(const Robot &robot,
                        const State &init, const State &end):
-    robot_(robot), splines_(robot.getNbDof())
+    robot_(robot)
   {
     unsigned int nbDof = robot_.getNbDof();
     double init_[3], end_[3];
 
     duration_ = 0.;
     for(unsigned int i=0; i<nbDof; i++) {
-      const Dof &dof = robot_.getDof(i);
-
       init_[0] = init.position()[i];
       init_[1] = init.velocity()[i];
       init_[2] = init.acceleration()[i];
@@ -37,7 +35,7 @@ namespace kdtp {
       end_[1] = end.velocity()[i];
       end_[2] = end.acceleration()[i];
 
-      splines_[i].init(&dof, init_, end_);
+      splines_.push_back(Spline(robot_.getDof(i), init_, end_));
 
       if (duration_ < splines_[i].getDuration())
         duration_ = splines_[i].getDuration();

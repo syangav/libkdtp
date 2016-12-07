@@ -24,56 +24,27 @@
 
 namespace kdtp {
 
-  void
-  Spline::init(const Dof *dof, double init, double end)
+  Spline::Spline(const Dof &dof, double init[3], double end[3])
   {
-    dof_ = dof;
-
-    init_[0] = init;
-    end_[0] = end;
-
-    if(init_[0] < dof_->getPositionMin())
-      init_[0] = dof_->getPositionMin();
-    else if(init_[0] > dof_->getPositionMax())
-      init_[0] = dof_->getPositionMax();
-
-    if(end_[0] < dof_->getPositionMin())
-      end_[0] = dof_->getPositionMin();
-    else if(end_[0] > dof_->getPositionMax())
-      end_[0] = dof_->getPositionMax();
-
-    if(dof_->isRotation()) {
-      while(fabs(init_[0] - end_[0]) > M_PI)
-        end_[0] -= sign(end_[0]) * 2*M_PI;
-    }
-
-    init_[1] = init_[2] = 0.;
-    end_[1] = end_[2] = 0.;
-
-
-    stay_still_ = fabs(init_[0] - end_[0]) < EPSILON;
-    if (!stay_still_) v_optim();
-  }
-
-  void
-  Spline::init(const Dof *dof, double init[3], double end[3])
-  {
-    dof_ = dof;
+    vmax_ = dof.getVelocityMax();
+    amax_ = dof.getAccelerationMax();
+    jmax_ = dof.getJerkMax();
+    smax_ = dof.getSnapMax();
 
     init_[0] = init[0];
     end_[0] = end[0];
 
-    if(init_[0] < dof_->getPositionMin())
-      init_[0] = dof_->getPositionMin();
-    if(init_[0] > dof_->getPositionMax())
-      init_[0] = dof_->getPositionMax();
+    if(init_[0] < dof.getPositionMin())
+      init_[0] = dof.getPositionMin();
+    if(init_[0] > dof.getPositionMax())
+      init_[0] = dof.getPositionMax();
 
-    if(end_[0] < dof_->getPositionMin())
-      end_[0] = dof_->getPositionMin();
-    if(end_[0] > dof_->getPositionMax())
-      end_[0] = dof_->getPositionMax();
+    if(end_[0] < dof.getPositionMin())
+      end_[0] = dof.getPositionMin();
+    if(end_[0] > dof.getPositionMax())
+      end_[0] = dof.getPositionMax();
 
-    if(dof_->isRotation()) {
+    if(dof.isRotation()) {
       while(fabs(init_[0] - end_[0]) > M_PI)
         end_[0] -= sign(end_[0]) * 2*M_PI;
     }
@@ -81,18 +52,14 @@ namespace kdtp {
     init_[1] = init[1];
     end_[1] = end[1];
 
-    if(fabs(init_[1]) > dof_->getVelocityMax())
-      init_[1] = copysign(dof_->getVelocityMax(), init_[1]);
-    if(fabs(end_[1]) > dof_->getVelocityMax())
-      end_[1] = copysign(dof_->getVelocityMax(), end_[1]);
+    if(fabs(init_[1]) > vmax_) init_[1] = copysign(vmax_, init_[1]);
+    if(fabs(end_[1]) > vmax_) end_[1] = copysign(vmax_, end_[1]);
 
     init_[2] = init[2];
     end_[2] = end[2];
 
-    if(fabs(init_[2]) > dof_->getAccelerationMax())
-      init_[2] = copysign(dof_->getAccelerationMax(), init_[2]);
-    if(fabs(end_[2]) > dof_->getAccelerationMax())
-      end_[2] = copysign(dof_->getAccelerationMax(), end_[2]);
+    if(fabs(init_[2]) > amax_) init_[2] = copysign(amax_, init_[2]);
+    if(fabs(end_[2]) > amax_) end_[2] = copysign(amax_, end_[2]);
 
     stay_still_ =
       fabs(init_[0] - end_[0]) < EPSILON &&
@@ -115,11 +82,9 @@ namespace kdtp {
   Spline::case_abc(double aB) const
   {
     double a0 = init_[2];
-    double jmax = getJerkMax();
-    double smax = getSnapMax();
     int sA = sign(aB-a0);
     int sC = -sign(aB);
-    double aj = jmax*jmax/smax;
+    double aj = jmax_*jmax_/smax_;
     int cond_A = fabs(a0-aB)>aj;
     int cond_C = fabs(aB)>aj;
     int case_ABC = 1000*(sA+1)+100*(sC+1)+10*cond_A+cond_C;
@@ -138,11 +103,9 @@ namespace kdtp {
   Spline::case_egh(double aG) const
   {
     double aF = end_[2];
-    double jmax = getJerkMax();
-    double smax = getSnapMax();
     int sH = sign(aF-aG);
     int sE = sign(aG);
-    double aj = jmax*jmax/smax;
+    double aj = jmax_*jmax_/smax_;
     int cond_H = fabs(aG-aF)>aj;
     int cond_E = fabs(aG)>aj;
     int case_EGH = 1000*(sH+1)+100*(sE+1)+10*cond_H+cond_E;
@@ -161,24 +124,22 @@ namespace kdtp {
   Spline::durations_and_signs_ac(double aB)
   {
     double a0 = init_[2];
-    double jmax = getJerkMax();
-    double smax = getSnapMax();
-    double aj = jmax*jmax/smax;
+    double aj = jmax_*jmax_/smax_;
 
     signs_[A] = sign(aB-a0);
     signs_[C] = -sign(aB);
     if (fabs(aB-a0) > aj) {
-      durations_[A1] = jmax/smax;
-      durations_[A2] = fabs(aB-a0)/jmax-jmax/smax;
+      durations_[A1] = jmax_/smax_;
+      durations_[A2] = fabs(aB-a0)/jmax_-jmax_/smax_;
     } else {
-      durations_[A1] = sqrt(fabs(a0-aB)/smax);
+      durations_[A1] = sqrt(fabs(a0-aB)/smax_);
       durations_[A2] = 0.;
     }
     if (fabs(aB) > aj) {
-      durations_[C1] = jmax/smax;
-      durations_[C2] = fabs(aB)/jmax-jmax/smax;
+      durations_[C1] = jmax_/smax_;
+      durations_[C2] = fabs(aB)/jmax_-jmax_/smax_;
     } else {
-      durations_[C1] = sqrt(fabs(aB)/smax);
+      durations_[C1] = sqrt(fabs(aB)/smax_);
       durations_[C2] = 0.;
     }
   }
@@ -194,24 +155,22 @@ namespace kdtp {
   Spline::durations_and_signs_eh(double aG)
   {
     double aF = end_[2];
-    double jmax=this->getJerkMax();
-    double smax=this->getSnapMax();
-    double aj=jmax*jmax/smax;
+    double aj=jmax_*jmax_/smax_;
 
     signs_[H] = sign(aF-aG);
     signs_[E] = sign(aG);
     if (fabs(aF-aG) > aj) {
-      durations_[H1] = jmax/smax;
-      durations_[H2] = fabs(aF-aG)/jmax-jmax/smax;
+      durations_[H1] = jmax_/smax_;
+      durations_[H2] = fabs(aF-aG)/jmax_-jmax_/smax_;
     } else {
-      durations_[H1] = sqrt(fabs(aF-aG)/smax);
+      durations_[H1] = sqrt(fabs(aF-aG)/smax_);
       durations_[H2] = 0.;
     }
     if (fabs(aG) > aj) {
-      durations_[E1] = jmax/smax;
-      durations_[E2] = fabs(aG)/jmax-jmax/smax;
+      durations_[E1] = jmax_/smax_;
+      durations_[E2] = fabs(aG)/jmax_-jmax_/smax_;
     } else {
-      durations_[E1] = sqrt(fabs(aG)/smax);
+      durations_[E1] = sqrt(fabs(aG)/smax_);
       durations_[E2] = 0.;
     }
   }
@@ -243,7 +202,6 @@ namespace kdtp {
     double x0 = init_[0];
     double v0 = init_[1];
     double a0 = init_[2];
-    double smax = getSnapMax();
     double tA1_2 = tA1*tA1;
     double tA1_3 = tA1_2*tA1;
     double tA1_4 = tA1_3*tA1;
@@ -257,22 +215,22 @@ namespace kdtp {
     double tC2_3 = tC2_2*tC2;
 
     return
-      (7*sA*smax*tA1_4)/12+(7*sA*smax*tA1_3*tA2)/6+sA*smax*tA1_3*tB
-      +2*sA*smax*tA1_3*tC1+sA*smax*tA1_3*tC2+(3*sA*smax*tA1_2*tA2_2)/4
-      +(3*sA*smax*tA1_2*tA2*tB)/2+3*sA*smax*tA1_2*tA2*tC1
-      +(3*sA*smax*tA1_2*tA2*tC2)/2+(sA*smax*tA1_2*tB_2)/2
-      +2*sA*smax*tA1_2*tB*tC1+sA*smax*tA1_2*tB*tC2+2*sA*smax*tA1_2*tC1_2
-      +2*sA*smax*tA1_2*tC1*tC2+(sA*smax*tA1_2*tC2_2)/2+2*a0*tA1_2
-      +(sA*smax*tA1*tA2_3)/6+(sA*smax*tA1*tA2_2*tB)/2
-      +sA*smax*tA1*tA2_2*tC1+(sA*smax*tA1*tA2_2*tC2)/2
-      +(sA*smax*tA1*tA2*tB_2)/2+2*sA*smax*tA1*tA2*tB*tC1
-      +sA*smax*tA1*tA2*tB*tC2+2*sA*smax*tA1*tA2*tC1_2
-      +2*sA*smax*tA1*tA2*tC1*tC2+(sA*smax*tA1*tA2*tC2_2)/2
+      (7*sA*smax_*tA1_4)/12+(7*sA*smax_*tA1_3*tA2)/6+sA*smax_*tA1_3*tB
+      +2*sA*smax_*tA1_3*tC1+sA*smax_*tA1_3*tC2+(3*sA*smax_*tA1_2*tA2_2)/4
+      +(3*sA*smax_*tA1_2*tA2*tB)/2+3*sA*smax_*tA1_2*tA2*tC1
+      +(3*sA*smax_*tA1_2*tA2*tC2)/2+(sA*smax_*tA1_2*tB_2)/2
+      +2*sA*smax_*tA1_2*tB*tC1+sA*smax_*tA1_2*tB*tC2+2*sA*smax_*tA1_2*tC1_2
+      +2*sA*smax_*tA1_2*tC1*tC2+(sA*smax_*tA1_2*tC2_2)/2+2*a0*tA1_2
+      +(sA*smax_*tA1*tA2_3)/6+(sA*smax_*tA1*tA2_2*tB)/2
+      +sA*smax_*tA1*tA2_2*tC1+(sA*smax_*tA1*tA2_2*tC2)/2
+      +(sA*smax_*tA1*tA2*tB_2)/2+2*sA*smax_*tA1*tA2*tB*tC1
+      +sA*smax_*tA1*tA2*tB*tC2+2*sA*smax_*tA1*tA2*tC1_2
+      +2*sA*smax_*tA1*tA2*tC1*tC2+(sA*smax_*tA1*tA2*tC2_2)/2
       +2*a0*tA1*tA2+2*a0*tA1*tB+4*a0*tA1*tC1+2*a0*tA1*tC2
       +2*v0*tA1+(a0*tA2_2)/2+a0*tA2*tB+2*a0*tA2*tC1+a0*tA2*tC2+v0*tA2
-      +(a0*tB_2)/2+2*a0*tB*tC1+a0*tB*tC2+v0*tB+(7*sC*smax*tC1_4)/12
-      +(7*sC*smax*tC1_3*tC2)/6+(3*sC*smax*tC1_2*tC2_2)/4+2*a0*tC1_2
-      +(sC*smax*tC1*tC2_3)/6+2*a0*tC1*tC2+2*v0*tC1+(a0*tC2_2)/2+v0*tC2+x0;
+      +(a0*tB_2)/2+2*a0*tB*tC1+a0*tB*tC2+v0*tB+(7*sC*smax_*tC1_4)/12
+      +(7*sC*smax_*tC1_3*tC2)/6+(3*sC*smax_*tC1_2*tC2_2)/4+2*a0*tC1_2
+      +(sC*smax_*tC1*tC2_3)/6+2*a0*tC1*tC2+2*v0*tC1+(a0*tC2_2)/2+v0*tC2+x0;
   }
 
   /**
@@ -302,7 +260,6 @@ namespace kdtp {
     double xF = end_[0];
     double vF = end_[1];
     double aF = end_[2];
-    double smax = getSnapMax();
     double tE1_2 = tE1*tE1;
     double tE1_3 = tE1_2*tE1;
     double tE1_4 = tE1_3*tE1;
@@ -316,21 +273,21 @@ namespace kdtp {
     double tH2_3 = tH2_2*tH2;
 
     return
-      -(7*sE*smax*tE1_4)/12-(7*sE*smax*tE1_3*tE2)/6
-      -(3*sE*smax*tE1_2*tE2_2)/4-2*sH*smax*tE1_2*tH1_2
-      -2*sH*smax*tE1_2*tH1*tH2+2*aF*tE1_2-(sE*smax*tE1*tE2_3)/6
-      -2*sH*smax*tE1*tE2*tH1_2-2*sH*smax*tE1*tE2*tH1*tH2+2*aF*tE1*tE2
-      -2*sH*smax*tE1*tG*tH1_2-2*sH*smax*tE1*tG*tH1*tH2+2*aF*tE1*tG
-      -2*sH*smax*tE1*tH1_3-3*sH*smax*tE1*tH1_2*tH2-sH*smax*tE1*tH1*tH2_2
-      +4*aF*tE1*tH1+2*aF*tE1*tH2-2*vF*tE1-(sH*smax*tE2_2*tH1_2)/2
-      -(sH*smax*tE2_2*tH1*tH2)/2+(aF*tE2_2)/2-sH*smax*tE2*tG*tH1_2
-      -sH*smax*tE2*tG*tH1*tH2+aF*tE2*tG-sH*smax*tE2*tH1_3
-      -(3*sH*smax*tE2*tH1_2*tH2)/2-(sH*smax*tE2*tH1*tH2_2)/2+2*aF*tE2*tH1
-      +aF*tE2*tH2-vF*tE2-(sH*smax*tG_2*tH1_2)/2-(sH*smax*tG_2*tH1*tH2)/2
-      +(aF*tG_2)/2-sH*smax*tG*tH1_3-(3*sH*smax*tG*tH1_2*tH2)/2
-      -(sH*smax*tG*tH1*tH2_2)/2+2*aF*tG*tH1+aF*tG*tH2-vF*tG
-      -(7*sH*smax*tH1_4)/12-(7*sH*smax*tH1_3*tH2)/6
-      -(3*sH*smax*tH1_2*tH2_2)/4+2*aF*tH1_2-(sH*smax*tH1*tH2_3)/6
+      -(7*sE*smax_*tE1_4)/12-(7*sE*smax_*tE1_3*tE2)/6
+      -(3*sE*smax_*tE1_2*tE2_2)/4-2*sH*smax_*tE1_2*tH1_2
+      -2*sH*smax_*tE1_2*tH1*tH2+2*aF*tE1_2-(sE*smax_*tE1*tE2_3)/6
+      -2*sH*smax_*tE1*tE2*tH1_2-2*sH*smax_*tE1*tE2*tH1*tH2+2*aF*tE1*tE2
+      -2*sH*smax_*tE1*tG*tH1_2-2*sH*smax_*tE1*tG*tH1*tH2+2*aF*tE1*tG
+      -2*sH*smax_*tE1*tH1_3-3*sH*smax_*tE1*tH1_2*tH2-sH*smax_*tE1*tH1*tH2_2
+      +4*aF*tE1*tH1+2*aF*tE1*tH2-2*vF*tE1-(sH*smax_*tE2_2*tH1_2)/2
+      -(sH*smax_*tE2_2*tH1*tH2)/2+(aF*tE2_2)/2-sH*smax_*tE2*tG*tH1_2
+      -sH*smax_*tE2*tG*tH1*tH2+aF*tE2*tG-sH*smax_*tE2*tH1_3
+      -(3*sH*smax_*tE2*tH1_2*tH2)/2-(sH*smax_*tE2*tH1*tH2_2)/2+2*aF*tE2*tH1
+      +aF*tE2*tH2-vF*tE2-(sH*smax_*tG_2*tH1_2)/2-(sH*smax_*tG_2*tH1*tH2)/2
+      +(aF*tG_2)/2-sH*smax_*tG*tH1_3-(3*sH*smax_*tG*tH1_2*tH2)/2
+      -(sH*smax_*tG*tH1*tH2_2)/2+2*aF*tG*tH1+aF*tG*tH2-vF*tG
+      -(7*sH*smax_*tH1_4)/12-(7*sH*smax_*tH1_3*tH2)/6
+      -(3*sH*smax_*tH1_2*tH2_2)/4+2*aF*tH1_2-(sH*smax_*tH1*tH2_3)/6
       +2*aF*tH1*tH2-2*vF*tH1+(aF*tH2_2)/2-vF*tH2+xF;
   }
 
@@ -360,7 +317,6 @@ namespace kdtp {
     double sC = signs_[C];
     double v0 = init_[1];
     double a0 = init_[2];
-    double smax = getSnapMax();
     double tA1_2 = tA1*tA1;
     double tA1_3 = tA1_2*tA1;
     double tA2_2 = tA2*tA2;
@@ -369,11 +325,11 @@ namespace kdtp {
     double tC2_2 = tC2*tC2;
 
     return
-      sA*smax*tA1_3+(3*sA*smax*tA1_2*tA2)/2+2*sA*smax*tA1_2*tC1
-      +sA*smax*tA1_2*tC2+sA*smax*tB*tA1_2+(sA*smax*tA1*tA2_2)/2
-      +2*sA*smax*tA1*tA2*tC1+sA*smax*tA1*tA2*tC2+sA*smax*tB*tA1*tA2
-      +2*a0*tA1+a0*tA2+sC*smax*tC1_3+(3*sC*smax*tC1_2*tC2)/2
-      +(sC*smax*tC1*tC2_2)/2+2*a0*tC1+a0*tC2+v0+a0*tB;
+      sA*smax_*tA1_3+(3*sA*smax_*tA1_2*tA2)/2+2*sA*smax_*tA1_2*tC1
+      +sA*smax_*tA1_2*tC2+sA*smax_*tB*tA1_2+(sA*smax_*tA1*tA2_2)/2
+      +2*sA*smax_*tA1*tA2*tC1+sA*smax_*tA1*tA2*tC2+sA*smax_*tB*tA1*tA2
+      +2*a0*tA1+a0*tA2+sC*smax_*tC1_3+(3*sC*smax_*tC1_2*tC2)/2
+      +(sC*smax_*tC1*tC2_2)/2+2*a0*tC1+a0*tC2+v0+a0*tB;
   }
 
   /**
@@ -401,7 +357,6 @@ namespace kdtp {
     double sH = signs_[H];
     double vF = end_[1];
     double aF = end_[2];
-    double smax = getSnapMax();
     double tE1_2 = tE1*tE1;
     double tE1_3 = tE1_2*tE1;
     double tE2_2 = tE2*tE2;
@@ -410,11 +365,11 @@ namespace kdtp {
     double tH2_2 = tH2*tH2;
 
     return
-      sE*smax*tE1_3+(3*sE*smax*tE1_2*tE2)/2+(sE*smax*tE1*tE2_2)/2
-      +2*sH*smax*tE1*tH1_2+2*sH*smax*tE1*tH1*tH2-2*aF*tE1
-      +sH*smax*tE2*tH1_2+sH*smax*tE2*tH1*tH2-aF*tE2+sH*smax*tH1_3
-      +(3*sH*smax*tH1_2*tH2)/2+sH*smax*tG*tH1_2+(sH*smax*tH1*tH2_2)/2
-      +sH*smax*tG*tH1*tH2-2*aF*tH1-aF*tH2+vF-aF*tG;
+      sE*smax_*tE1_3+(3*sE*smax_*tE1_2*tE2)/2+(sE*smax_*tE1*tE2_2)/2
+      +2*sH*smax_*tE1*tH1_2+2*sH*smax_*tE1*tH1*tH2-2*aF*tE1
+      +sH*smax_*tE2*tH1_2+sH*smax_*tE2*tH1*tH2-aF*tE2+sH*smax_*tH1_3
+      +(3*sH*smax_*tH1_2*tH2)/2+sH*smax_*tG*tH1_2+(sH*smax_*tH1*tH2_2)/2
+      +sH*smax_*tG*tH1*tH2-2*aF*tH1-aF*tH2+vF-aF*tG;
   }
 
   /**
@@ -425,18 +380,15 @@ namespace kdtp {
   void
   Spline::intervals_ac()
   {
-    double amax = getAccelerationMax();
-    double jmax = getJerkMax();
-    double smax = getSnapMax();
-    double aj = jmax*jmax/smax;
+    double aj = jmax_*jmax_/smax_;
     double a0 = init_[2];
-    double Ac[7] = { amax, 0., aj, -aj, a0, a0 + aj, a0 - aj };
+    double Ac[7] = { amax_, 0., aj, -aj, a0, a0 + aj, a0 - aj };
     double tmp[8];
 
-    tmp[0] = -amax;
+    tmp[0] = -amax_;
     int n = 1;
     for(int k = 0; k < 7; k++) {
-      if ((Ac[k]*a0 <= 0. || fabs(Ac[k])>= fabs(a0)) && fabs(Ac[k]) <= amax) {
+      if ((Ac[k]*a0 <= 0. || fabs(Ac[k])>= fabs(a0)) && fabs(Ac[k]) <= amax_) {
         int l = 0;
         while (l < n && Ac[k]>tmp[l])
           l++;
@@ -469,18 +421,15 @@ namespace kdtp {
   void
   Spline::intervals_eh()
   {
-    double amax = getAccelerationMax();
-    double jmax = getJerkMax();
-    double smax = getSnapMax();
-    double aj = jmax*jmax/smax;
+    double aj = jmax_*jmax_/smax_;
     double aF = end_[2];
-    double Ac[7] = { amax, 0., aj, -aj, aF, aF+aj, aF-aj };
+    double Ac[7] = { amax_, 0., aj, -aj, aF, aF+aj, aF-aj };
     double tmp[8];
 
-    tmp[0] = -amax;
+    tmp[0] = -amax_;
     int n = 1;
     for(int k = 0; k < 7; k++) {
-      if ((Ac[k]*aF <= 0. || fabs(Ac[k]) >= fabs(aF)) && fabs(Ac[k]) <= amax) {
+      if ((Ac[k]*aF <= 0. || fabs(Ac[k]) >= fabs(aF)) && fabs(Ac[k]) <= amax_) {
         int l = 0;
         while (l < n && Ac[k] < tmp[l])
           l++;
@@ -521,25 +470,22 @@ namespace kdtp {
     double a0 = init_[2];
     double a0_2 = a0*a0;
     double a0_3 = a0_2*a0;
-    double amax = getAccelerationMax();
-    double jmax = getJerkMax();
-    double jmax_2 = jmax*jmax;
+    double jmax_2 = jmax_*jmax_;
     double jmax_4 = jmax_2*jmax_2;
-    double smax = getSnapMax();
-    double smax_2 = smax*smax;
+    double smax_2 = smax_*smax_;
 
     assert(!cases_abc_.empty());
     assert(int_v_abc_.size() == cases_abc_.size() + 1);
     assert(int_a_abc_.size() == cases_abc_.size() + 1);
 
     if (vC < int_v_abc_[0]) {
-      durations_[B] = (int_v_abc_[0]-vC)/amax;
-      return -amax;
+      durations_[B] = (int_v_abc_[0]-vC)/amax_;
+      return -amax_;
     }
 
     if (vC >= int_v_abc_.at(cases_abc_.size())) {
-      durations_[B] = (vC-int_v_abc_.at(cases_abc_.size()))/amax;
-      return amax;
+      durations_[B] = (vC-int_v_abc_.at(cases_abc_.size()))/amax_;
+      return amax_;
     }
 
     durations_[B] = 0;
@@ -558,55 +504,55 @@ namespace kdtp {
 
     switch (case_ABC) {
       case 210:
-        return -sqr(jmax-sqrt(
-                      4*sqrt(smax*(a0*jmax_2+a0_2*smax
-                                   +2*jmax*smax*(v0-vC)))+jmax_2))/(4*smax);
+        return -sqr(jmax_-sqrt(
+                      4*sqrt(smax_*(a0*jmax_2+a0_2*smax_
+                                   +2*jmax_*smax_*(v0-vC)))+jmax_2))/(4*smax_);
       case 211:
-        return (jmax_2-sqrt(jmax_4+2*a0_2*smax_2+4*jmax*smax_2*(v0-vC)
-                            +2*a0*jmax_2*smax))/(2*smax);
+        return (jmax_2-sqrt(jmax_4+2*a0_2*smax_2+4*jmax_*smax_2*(v0-vC)
+                            +2*a0*jmax_2*smax_))/(2*smax_);
       case 2010:
-        return sqr(jmax-sqrt(
-                     4*sqrt(smax*(a0_2*smax-a0*jmax_2
-                                  +2*jmax*smax*(vC-v0)))+jmax_2))/(4*smax);
+        return sqr(jmax_-sqrt(
+                     4*sqrt(smax_*(a0_2*smax_-a0*jmax_2
+                                  +2*jmax_*smax_*(vC-v0)))+jmax_2))/(4*smax_);
       case 2011:
-        return (sqrt(jmax_4+2*a0_2*smax_2+4*jmax*smax_2*(vC-v0)
-                     -2*a0*jmax_2*smax)-jmax_2)/(2*smax);
+        return (sqrt(jmax_4+2*a0_2*smax_2+4*jmax_*smax_2*(vC-v0)
+                     -2*a0*jmax_2*smax_)-jmax_2)/(2*smax_);
 
       case 200:
-        a = 2*sqrt(smax)*(v0-vC)/a0;
+        a = 2*sqrt(smax_)*(v0-vC)/a0;
         b = -a0;
-        c = -4*a0*sqrt(smax)*(v0-vC)/a0;
-        d = -(smax*sqr(v0-vC)+a0_3)/a0;
+        c = -4*a0*sqrt(smax_)*(v0-vC)/a0;
+        d = -(smax_*sqr(v0-vC)+a0_3)/a0;
         sol = poly_root_4(1, a, b, c, d);
         for(k = 0; k < sol.size(); k++)
           sol[k] = -sqr(sol[k]) + a0;
         break;
 
       case 201:
-        a = 2*jmax/sqrt(smax);
-        b = (jmax_2-2*a0*smax)/smax;
-        c = -4*a0*jmax/sqrt(smax);
-        d = -(a0*jmax_2-a0_2*smax+2*jmax*smax*(v0-vC))/smax;
+        a = 2*jmax_/sqrt(smax_);
+        b = (jmax_2-2*a0*smax_)/smax_;
+        c = -4*a0*jmax_/sqrt(smax_);
+        d = -(a0*jmax_2-a0_2*smax_+2*jmax_*smax_*(v0-vC))/smax_;
         sol = poly_root_4(1, a, b, c, d);
         for(k = 0; k<sol.size();k++)
           sol[k] = -sqr(sol[k]) + a0;
         break;
 
       case 2000:
-        a = 2*sqrt(smax)*(vC-v0)/a0;
+        a = 2*sqrt(smax_)*(vC-v0)/a0;
         b = -a0;
         c = 0;
-        d = -(smax*sqr(vC-v0)+a0_3)/a0;
+        d = -(smax_*sqr(vC-v0)+a0_3)/a0;
         sol = poly_root_4(1, a, b, c, d);
         for(k = 0; k < sol.size(); k++)
           sol[k] = sqr(sol[k]);
         break;
 
       case 2001:
-        a = 2*jmax/sqrt(smax);
-        b = (2*a0*smax+jmax_2)/smax;
-        c = 4*a0*jmax/sqrt(smax);
-        d = (a0*jmax_2+a0_2*smax+2*jmax*smax*(v0-vC))/smax;
+        a = 2*jmax_/sqrt(smax_);
+        b = (2*a0*smax_+jmax_2)/smax_;
+        c = 4*a0*jmax_/sqrt(smax_);
+        d = (a0*jmax_2+a0_2*smax_+2*jmax_*smax_*(v0-vC))/smax_;
         sol = poly_root_4(1, a, b, c, d);
         for(k = 0; k < sol.size(); k++)
           sol[k] = sqr(sol[k]) + a0;
@@ -665,25 +611,22 @@ namespace kdtp {
     double aF = end_[2];
     double aF_2 = sqr(aF);
     double aF_3 = aF_2*aF;
-    double amax = getAccelerationMax();
-    double jmax = getJerkMax();
-    double jmax_2 = sqr(jmax);
+    double jmax_2 = sqr(jmax_);
     double jmax_4 = sqr(jmax_2);
-    double smax = getSnapMax();
-    double smax_2 = sqr(smax);
+    double smax_2 = sqr(smax_);
 
     assert(!cases_egh_.empty());
     assert(int_v_egh_.size() == cases_egh_.size() + 1);
     assert(int_a_egh_.size() == cases_egh_.size() + 1);
 
     if (vE < int_v_egh_[0]) {
-      durations_[G] = (int_v_egh_[0]-vE)/amax;
-      return amax;
+      durations_[G] = (int_v_egh_[0]-vE)/amax_;
+      return amax_;
     }
 
     if (vE >= int_v_egh_[cases_egh_.size()]) {
-      durations_[G] = (vE - int_v_egh_[cases_egh_.size()])/amax;
-      return -amax;
+      durations_[G] = (vE - int_v_egh_[cases_egh_.size()])/amax_;
+      return -amax_;
     }
 
     durations_[G] = 0;
@@ -701,55 +644,55 @@ namespace kdtp {
     unsigned int k;
     switch (case_EGH) {
       case 210:
-        return sqr(jmax-sqrt(
-                     4*sqrt(smax*(aF_2*smax-aF*jmax_2
-                                  +2*jmax*smax*(vF-vE)))+jmax_2))/(4*smax);
+        return sqr(jmax_-sqrt(
+                     4*sqrt(smax_*(aF_2*smax_-aF*jmax_2
+                                  +2*jmax_*smax_*(vF-vE)))+jmax_2))/(4*smax_);
       case 211:
-        return (sqrt(jmax_4+2*aF_2*smax_2-2*aF*jmax_2*smax
-                     +4*jmax*smax_2*(vF-vE))-jmax_2)/(2*smax);
+        return (sqrt(jmax_4+2*aF_2*smax_2-2*aF*jmax_2*smax_
+                     +4*jmax_*smax_2*(vF-vE))-jmax_2)/(2*smax_);
       case 2010:
-        return -sqr(jmax-sqrt(
-                      4*sqrt(smax*(aF*jmax_2+aF_2*smax
-                                   +2*jmax*smax*(vE-vF)))+jmax_2))/(4*smax);
+        return -sqr(jmax_-sqrt(
+                      4*sqrt(smax_*(aF*jmax_2+aF_2*smax_
+                                   +2*jmax_*smax_*(vE-vF)))+jmax_2))/(4*smax_);
       case 2011:
-        return (jmax_2-sqrt(jmax_4+2*aF_2*smax_2+2*aF*jmax_2*smax
-                            +4*jmax*smax_2*(vE-vF)))/(2*smax);
+        return (jmax_2-sqrt(jmax_4+2*aF_2*smax_2+2*aF*jmax_2*smax_
+                            +4*jmax_*smax_2*(vE-vF)))/(2*smax_);
 
       case 200:
-        a = 2*sqrt(smax)*(vF-vE)/aF;
+        a = 2*sqrt(smax_)*(vF-vE)/aF;
         b = -aF;
         c = 0;
-        d = -(smax*sqr(vE-vF)+aF_3)/aF;
+        d = -(smax_*sqr(vE-vF)+aF_3)/aF;
         sol = poly_root_4(1, a, b, c, d);
         for(k = 0; k<sol.size(); k++)
           sol[k] = sqr(sol[k]);
         break;
 
       case 201:
-        a = 2*jmax/sqrt(smax);
-        b = (2*aF*smax+jmax_2)/smax;
-        c = 4*aF*jmax/sqrt(smax);
-        d = (aF*jmax_2+aF_2*smax+2*jmax*smax*(vE-vF))/smax;
+        a = 2*jmax_/sqrt(smax_);
+        b = (2*aF*smax_+jmax_2)/smax_;
+        c = 4*aF*jmax_/sqrt(smax_);
+        d = (aF*jmax_2+aF_2*smax_+2*jmax_*smax_*(vE-vF))/smax_;
         sol = poly_root_4(1, a, b, c, d);
         for(k = 0; k<sol.size(); k++)
           sol[k] = sqr(sol[k])+aF;
         break;
 
       case 2000:
-        a = 2*sqrt(smax)*(vE-vF)/aF;
+        a = 2*sqrt(smax_)*(vE-vF)/aF;
         b = -aF;
-        c = 4*aF*sqrt(smax)*(vF-vE)/aF;
-        d = -(smax*sqr(vE-vF)+aF_3)/aF;
+        c = 4*aF*sqrt(smax_)*(vF-vE)/aF;
+        d = -(smax_*sqr(vE-vF)+aF_3)/aF;
         sol = poly_root_4(1, a, b, c, d);
         for(k = 0; k<sol.size(); k++)
           sol[k] = -sqr(sol[k])+aF;
         break;
 
       case 2001:
-        a = 2*jmax/sqrt(smax);
-        b = (jmax_2-2*aF*smax)/smax;
-        c = -4*aF*jmax/sqrt(smax);
-        d = (aF_2*smax-aF*jmax_2+2*jmax*smax*(vF-vE))/smax;
+        a = 2*jmax_/sqrt(smax_);
+        b = (jmax_2-2*aF*smax_)/smax_;
+        c = -4*aF*jmax_/sqrt(smax_);
+        d = (aF_2*smax_-aF*jmax_2+2*jmax_*smax_*(vF-vE))/smax_;
         sol = poly_root_4(1, a, b, c, d);
         for(k = 0; k<sol.size(); k++)
           sol[k] = -sqr(sol[k])+aF;
@@ -849,11 +792,10 @@ namespace kdtp {
     intervals_eh();
 
     // Searching a zero of d_x with secant method
-    double vmax = getVelocityMax();
     double v1 = 0;
     double dX1 = d_x(v1);
     double s = sign(dX1);
-    double v2 = s*vmax;
+    double v2 = s*vmax_;
     double dX2 = d_x(v2);
     double v = v2-(v2-v1)*dX2/(dX2-dX1);
     double dX = d_x(v);
@@ -870,8 +812,8 @@ namespace kdtp {
     }
 
     // vmax is the upper bound
-    if (fabs(v)>vmax || s*v<0) {
-      v = s*vmax;
+    if (fabs(v)>vmax_ || s*v<0) {
+      v = s*vmax_;
       dX = d_x(v);
     }
 
@@ -898,8 +840,8 @@ namespace kdtp {
 
     v_opt_ = v;
 
-    if (fabs(v)>vmax || s*v<0)
-      warnx("kdtp::Spline::v_optim(): v = %f s = %f vmax = %f\n", v, s, vmax);
+    if (fabs(v)>vmax_ || s*v<0)
+      warnx("kdtp::Spline::v_optim(): v = %f s = %f vmax = %f\n", v, s, vmax_);
   }
 
   void
@@ -934,7 +876,7 @@ namespace kdtp {
     for(int k = 0; k<15; k++) {
       if (durations_[phases[k]] > EPSILON) {
         time += durations_[phases[k]];
-        snaps_[index] = snapsigns_[k] * getSnapMax();
+        snaps_[index] = snapsigns_[k] * smax_;
 
         std::vector<double> next = getAllAt(index, time);
         assert(next.size() > 4);
@@ -1122,8 +1064,8 @@ namespace kdtp {
   Spline::getSnapAt(double time) const
   {
     if (stay_still_) return 0.;
-    if (time < EPSILON) return signs_[A] * getSnapMax();
-    if (time > durations_[F] - EPSILON) return -signs_[H] * getSnapMax();
+    if (time < EPSILON) return signs_[A] * smax_;
+    if (time > durations_[F] - EPSILON) return -signs_[H] * smax_;
 
     return getSnapAt(getIndexAt(time));
   }
@@ -1144,7 +1086,7 @@ namespace kdtp {
       ret[1] = init_[1];
       ret[2] = init_[2];
       ret[3] = 0.;
-      ret[4] = signs_[A] * getSnapMax();
+      ret[4] = signs_[A] * smax_;
       return ret;
     }
 
@@ -1153,7 +1095,7 @@ namespace kdtp {
       ret[1] = end_[1];
       ret[2] = end_[2];
       ret[3] = 0.;
-      ret[4] = -signs_[H] * getSnapMax();
+      ret[4] = -signs_[H] * smax_;
       return ret;
     }
 

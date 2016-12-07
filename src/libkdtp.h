@@ -101,18 +101,10 @@ namespace kdtp {
 
   class Spline {
    public:
-    Spline() {};
-
-    void init(const Dof *dof, double init, double end);
-    void init(const Dof *dof, double init[3], double end[3]);
+    Spline(const Dof &dof, double init[3], double end[3]);
 
     double getDuration() const;
     void synchronize(double tF_des);
-
-    double getVelocityMax() const { return dof_->getVelocityMax(); };
-    double getAccelerationMax() const { return dof_->getAccelerationMax(); };
-    double getJerkMax() const { return dof_->getJerkMax(); };
-    double getSnapMax() const { return dof_->getSnapMax(); };
 
     double getPositionAt(double time) const;
     double getVelocityAt(double time) const;
@@ -161,8 +153,7 @@ namespace kdtp {
       A, C, E, H
     };
 
-    const Dof *dof_;
-
+    double vmax_, amax_, jmax_, smax_;
     double init_[3], end_[3];
 
     std::vector<double> times_;
