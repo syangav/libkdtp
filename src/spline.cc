@@ -442,7 +442,7 @@ namespace kdtp {
           l++;
 
         if (l == n || fabs(Ac[k]-tmp[l]) > EPSILON) {
-          for(int i = n+1; i > l; i--)
+          for(int i = n; i > l; i--)
             tmp[i] = tmp[i-1];
           tmp[l]=Ac[k];
           n++;
@@ -487,7 +487,7 @@ namespace kdtp {
           l++;
 
         if (l == n || fabs(Ac[k]-tmp[l]) > EPSILON) {
-          for(int i = n + 1; i > l; i--)
+          for(int i = n; i > l; i--)
             tmp[i] = tmp[i-1];
           tmp[l] = Ac[k];
           n++;
