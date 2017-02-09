@@ -795,6 +795,8 @@ namespace kdtp {
     double v1 = 0;
     double dX1 = d_x(v1);
     double s = sign(dX1);
+    if(fabs(s)<EPSILON)
+        s=1.0;
     double v2 = s*vmax_;
     double dX2 = d_x(v2);
     double v = v2-(v2-v1)*dX2/(dX2-dX1);
