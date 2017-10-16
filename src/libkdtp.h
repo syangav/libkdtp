@@ -192,6 +192,7 @@ namespace kdtp {
     std::vector<double> getSnapAt(double time) const;
     std::vector<std::vector<double> > getAllAt(double time) const;
     State getStateAt(double time) const;
+	 void setDuration(double duration);
 
    private:
     const Robot &robot_;
