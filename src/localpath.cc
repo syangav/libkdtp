@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 LAAS/CNRS
+ * Copyright (c) 2016-2017 LAAS/CNRS
  * All rights reserved.
  *
  * Redistribution and use  in source  and binary  forms,  with or without
@@ -125,11 +125,11 @@ namespace kdtp {
     return state;
   }
 
-	void
-	LocalPath::setDuration(double duration)
-	{
-		duration_ = duration;
-		for(unsigned int i = 0; i < splines_.size(); i++)
-      splines_[i].synchronize(duration_);	
-	}
+  void
+  LocalPath::setDuration(double duration)
+  {
+    duration_ = duration;
+    for(unsigned int i = 0; i < splines_.size(); i++)
+      splines_[i].synchronize(duration_);
+  }
 }
