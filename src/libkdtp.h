@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 LAAS/CNRS
+ * Copyright (c) 2016-2017 LAAS/CNRS
  * All rights reserved.
  *
  * Redistribution and use  in source  and binary  forms,  with or without
@@ -192,7 +192,7 @@ namespace kdtp {
     std::vector<double> getSnapAt(double time) const;
     std::vector<std::vector<double> > getAllAt(double time) const;
     State getStateAt(double time) const;
-	 void setDuration(double duration);
+    void setDuration(double duration);
 
    private:
     const Robot &robot_;
