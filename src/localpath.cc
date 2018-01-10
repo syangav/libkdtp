@@ -19,13 +19,13 @@
 namespace kdtp {
 
   LocalPath::LocalPath(const Robot &robot,
-                       const State &init, const State &end):
+                       const State &init, const State &end, double duration):
     robot_(robot)
   {
     unsigned int nbDof = robot_.getNbDof();
     double init_[3], end_[3];
 
-    duration_ = 0.;
+    duration_ = duration;
     for(unsigned int i=0; i<nbDof; i++) {
       init_[0] = init.position()[i];
       init_[1] = init.velocity()[i];

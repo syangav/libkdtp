@@ -181,7 +181,7 @@ namespace kdtp {
 
   class LocalPath {
    public:
-    LocalPath(const Robot &robot, const State &init, const State &end);
+    LocalPath(const Robot &robot, const State &init, const State &end, double duration = 0.);
 
     double duration() const { return duration_; }
     unsigned int getNbSplines() const { return splines_.size(); }
