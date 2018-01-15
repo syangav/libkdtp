@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 LAAS/CNRS
+ * Copyright (c) 2016-2018 LAAS/CNRS
  * All rights reserved.
  *
  * Redistribution and use  in source  and binary  forms,  with or without
@@ -181,7 +181,8 @@ namespace kdtp {
 
   class LocalPath {
    public:
-    LocalPath(const Robot &robot, const State &init, const State &end, double duration = 0.);
+    LocalPath(const Robot &robot, const State &init, const State &end,
+              double duration = 0.);
 
     double duration() const { return duration_; }
     unsigned int getNbSplines() const { return splines_.size(); }
