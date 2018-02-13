@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 LAAS/CNRS
+ * Copyright (c) 2016,2018 LAAS/CNRS
  * All rights reserved.
  *
  * Redistribution and use  in source  and binary  forms,  with or without
@@ -393,7 +393,7 @@ namespace kdtp {
         while (l < n && Ac[k]>tmp[l])
           l++;
 
-        if (l == n || fabs(Ac[k]-tmp[l]) > EPSILON) {
+        if (l == n || Ac[k] < tmp[l]) {
           for(int i = n; i > l; i--)
             tmp[i] = tmp[i-1];
           tmp[l]=Ac[k];
@@ -434,7 +434,7 @@ namespace kdtp {
         while (l < n && Ac[k] < tmp[l])
           l++;
 
-        if (l == n || fabs(Ac[k]-tmp[l]) > EPSILON) {
+        if (l == n || Ac[k] > tmp[l]) {
           for(int i = n; i > l; i--)
             tmp[i] = tmp[i-1];
           tmp[l] = Ac[k];
