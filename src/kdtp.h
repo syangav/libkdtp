@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 LAAS/CNRS
+ * Copyright (c) 2016,2018 LAAS/CNRS
  * All rights reserved.
  *
  * Redistribution and use  in source  and binary  forms,  with or without
@@ -30,7 +30,7 @@ namespace kdtp {
 
   static inline int sign(double d)
   {
-    return (d > EPSILON) - (d < -EPSILON);
+    return (d > 0.) - (d < -0.);
   }
 
   static inline int sqr(double d)
