@@ -794,9 +794,7 @@ namespace kdtp {
     // Searching a zero of d_x with secant method
     double v1 = 0;
     double dX1 = d_x(v1);
-    double s = sign(dX1);
-    if(fabs(s)<EPSILON)
-        s=1.0;
+    int s = dX1 >= -0. ? 1 : -1;
     double v2 = s*vmax_;
     double dX2 = d_x(v2);
     double v = v2-(v2-v1)*dX2/(dX2-dX1);
@@ -843,7 +841,7 @@ namespace kdtp {
     v_opt_ = v;
 
     if (fabs(v)>vmax_ || s*v<0)
-      warnx("kdtp::Spline::v_optim(): v = %f s = %f vmax = %f\n", v, s, vmax_);
+      warnx("kdtp::Spline::v_optim(): v = %f s = %d vmax = %f\n", v, s, vmax_);
   }
 
   void
