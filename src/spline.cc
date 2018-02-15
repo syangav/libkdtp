@@ -129,16 +129,18 @@ namespace kdtp {
 
     signs_[A] = sign(aB-a0);
     signs_[C] = -sign(aB);
+
     if (fabs(aB-a0) > aj) {
       durations_[A1] = jmax_/smax_;
-      durations_[A2] = fabs(aB-a0)/jmax_-jmax_/smax_;
+      durations_[A2] = fabs(aB-a0)/jmax_ - durations_[A1];
     } else {
       durations_[A1] = sqrt(fabs(a0-aB)/smax_);
       durations_[A2] = 0.;
     }
+
     if (fabs(aB) > aj) {
       durations_[C1] = jmax_/smax_;
-      durations_[C2] = fabs(aB)/jmax_-jmax_/smax_;
+      durations_[C2] = fabs(aB)/jmax_ - durations_[C1];
     } else {
       durations_[C1] = sqrt(fabs(aB)/smax_);
       durations_[C2] = 0.;
@@ -180,19 +182,12 @@ namespace kdtp {
    * Calculates position at the end of phase C.
    * Inputs:
    *    double aB     : acceleration during phase B
-   *    double new_tB : an updated value of the duration of phase B
-   *    bool use_old  : indicates if the given value of tB is to be used
    * Output:
    *    double : position at the end of phase C
    */
   double
-  Spline::x_c(double aB, double new_tB, bool use_old)
+  Spline::x_c(double aB)
   {
-    if (!use_old) {
-      durations_[B] = new_tB;
-      durations_and_signs_ac(aB);
-    }
-
     double tA1 = durations_[A1];
     double tA2 = durations_[A2];
     double tB = durations_[B];
@@ -238,19 +233,12 @@ namespace kdtp {
    * Calculates position at the beginning of phase E.
    * Inputs:
    *    double aG     : acceleration during phase G
-   *    double new_tG : an updated value of the duration of phase G
-   *    bool use_old  : indicates if the given value of tG is to be used
    * Output:
    *    double : position at the beginning of phase E.
    */
   double
-  Spline::x_e(double aG, double new_tG, bool use_old)
+  Spline::x_e(double aG)
   {
-    if (!use_old) {
-      durations_[G] = new_tG;
-      durations_and_signs_eh(aG);
-    }
-
     double tE1 = durations_[E1];
     double tE2 = durations_[E2];
     double tG = durations_[G];
@@ -297,17 +285,14 @@ namespace kdtp {
    * Inputs:
    *    double aB     : acceleration during phase B
    *    double new_tB : an updated value of the duration of phase B
-   *    bool use_old  : indicates if the given value of tB is to be used
    * Output:
    *    double : velocity at the end of phase C
    */
   double
-  Spline::v_c(double aB, double new_tB, bool use_old)
+  Spline::v_c(double aB, double new_tB)
   {
-    if (!use_old) {
-      durations_[B] = new_tB;
-      durations_and_signs_ac(aB);
-    }
+    durations_[B] = new_tB;
+    durations_and_signs_ac(aB);
 
     double tA1 = durations_[A1];
     double tA2 = durations_[A2];
@@ -338,16 +323,13 @@ namespace kdtp {
    * Inputs:
    *    double aG     : acceleration during phase G
    *    double new_tG : an updated value of the duration of phase G
-   *    bool use_old  : indicates if the given value of tG is to be used
    * Output:
    *    double : velocity at the beginning of phase E.
    */
   double
-  Spline::v_e(double aG, double new_tG, bool use_old) {
-    if (!use_old) {
-      durations_[G] = new_tG;
-      durations_and_signs_eh(aG);
-    }
+  Spline::v_e(double aG, double new_tG) {
+    durations_[G] = new_tG;
+    durations_and_signs_eh(aG);
 
     double tE1 = durations_[E1];
     double tE2 = durations_[E2];
@@ -404,12 +386,12 @@ namespace kdtp {
     }
 
     int_a_abc_.push_back(tmp[0]);
-    int_v_abc_.push_back(v_c(tmp[0], 0., false));
+    int_v_abc_.push_back(v_c(tmp[0], 0.));
     for(int k = 1; k < n; k++) {
       double a1 = tmp[k-1];
       double a2 = tmp[k];
       int_a_abc_.push_back(a2);
-      int_v_abc_.push_back(v_c(a2, 0., false));
+      int_v_abc_.push_back(v_c(a2, 0.));
       cases_abc_.push_back(case_abc((a1+a2)/2));
     }
   }
@@ -445,12 +427,12 @@ namespace kdtp {
     }
 
     int_a_egh_.push_back(tmp[0]);
-    int_v_egh_.push_back(v_e(tmp[0], 0., false));
+    int_v_egh_.push_back(v_e(tmp[0], 0.));
     for(int k = 1; k < n; k++) {
       double a1 = tmp[k-1];
       double a2 = tmp[k];
       int_a_egh_.push_back(a2);
-      int_v_egh_.push_back(v_e(a2, 0., false));
+      int_v_egh_.push_back(v_e(a2, 0.));
       cases_egh_.push_back(case_egh((a1+a2)/2));
     }
   }
@@ -498,7 +480,7 @@ namespace kdtp {
       return a0;
     }
 
-    int case_ABC = cases_abc_.at(index_int);
+    int case_ABC = cases_abc_[index_int];
 
     double sol[4];
     double a, b, c, d;
@@ -565,33 +547,35 @@ namespace kdtp {
         assert(!"kdtp::Spline::a_b: unknown case");
     }
 
-    double dV = EPSI4+1;
+    double dV;
     double aB;
+
     if (nsol > 0) {
-      double dVmin = fabs(vC - v_c(sol[0], 0., false));
+      double dVmin = fabs(vC - v_c(sol[0], 0.));
       aB = sol[0];
       for(unsigned int i = 1; i < nsol; i++) {
-        dV = fabs(vC - v_c(sol[i], 0., false));
+        dV = fabs(vC - v_c(sol[i], 0.));
         if (dV < dVmin) {
           dVmin = dV;
           aB = sol[i];
         }
       }
       dV = dVmin;
+      if (dV < EPSI4) return aB;
     }
-    if (dV > EPSI4) {
-      double mina = int_a_abc_[index_int];
-      double maxa = int_a_abc_[index_int+1];
+
+    double mina = int_a_abc_[index_int];
+    double maxa = int_a_abc_[index_int+1];
+
+    aB = (mina+maxa)/2;
+    dV = vC - v_c(aB, 0.);
+    while(fabs(dV) > EPSI4 && fabs(mina-maxa) > EPSI4) {
+      if (dV>0)
+        mina = aB;
+      else
+        maxa = aB;
       aB = (mina+maxa)/2;
-      dV = vC - v_c(aB, 0., false);
-      while(fabs(dV) > EPSI4 && fabs(mina-maxa) > EPSI4) {
-        if (dV>0)
-          mina = aB;
-        else
-          maxa = aB;
-        aB = (mina+maxa)/2;
-        dV = vC - v_c(aB, 0.,false);
-      }
+      dV = vC - v_c(aB, 0.);
     }
 
     return aB;
@@ -706,34 +690,35 @@ namespace kdtp {
         assert(!"kdtp::Spline::a_g: unknown case");
     }
 
-    double dV = EPSI4+1;
+    double dV;
     double aG;
 
     if (nsol > 0) {
-      double dVmin = fabs(vE - v_e(sol[0], 0, false));
+      double dVmin = fabs(vE - v_e(sol[0], 0));
       aG = sol[0];
       for(unsigned int i = 1; i < nsol; i++) {
-        dV = fabs(vE - v_e(sol[i], 0., false));
+        dV = fabs(vE - v_e(sol[i], 0.));
         if (dV < dVmin) {
           dVmin = dV;
           aG = sol[i];
         }
       }
       dV = dVmin;
+      if (dV < EPSI4) return aG;
     }
-    if (dV > EPSI4) {
-      double mina = int_a_egh_[index_int];
-      double maxa = int_a_egh_[index_int+1];
+
+    double mina = int_a_egh_[index_int];
+    double maxa = int_a_egh_[index_int+1];
+
+    aG = (mina+maxa)/2;
+    dV = vE - v_e(aG, 0.);
+    while(fabs(dV) > EPSI4 && fabs(maxa-mina) > EPSI4) {
+      if (dV>0)
+        mina = aG;
+      else
+        maxa = aG;
       aG = (mina+maxa)/2;
-      dV = vE - v_e(aG,0,false);
-      while(fabs(dV) > EPSI4 && fabs(maxa-mina) > EPSI4) {
-        if (dV>0)
-          mina = aG;
-        else
-          maxa = aG;
-        aG = (mina+maxa)/2;
-        dV = vE - v_e(aG, 0., false);
-      }
+      dV = vE - v_e(aG, 0.);
     }
 
     return aG;
@@ -757,8 +742,8 @@ namespace kdtp {
     durations_and_signs_ac(aB);
     double aG = a_g(vD);
     durations_and_signs_eh(aG);
-    double xC = x_c(aB,0,true);
-    double xE = x_e(aG,0,true);
+    double xC = x_c(aB);
+    double xE = x_e(aG);
     double dX = xE-xC;
     double tD = dX/vD;
 

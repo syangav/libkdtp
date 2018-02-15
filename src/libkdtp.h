@@ -121,10 +121,10 @@ namespace kdtp {
     int case_egh(double aG) const;
     void durations_and_signs_ac(double aB);
     void durations_and_signs_eh(double aG);
-    double x_c(double aB, double new_tB, bool use_old);
-    double x_e(double aG, double new_tG, bool use_old);
-    double v_c(double aB, double new_tB, bool use_old);
-    double v_e(double aG, double new_tG, bool use_old);
+    double x_c(double aB);
+    double x_e(double aG);
+    double v_c(double aB, double new_tB);
+    double v_e(double aG, double new_tG);
     void intervals_ac();
     void intervals_eh();
     double a_b(double vC);
