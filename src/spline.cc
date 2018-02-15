@@ -881,9 +881,6 @@ namespace kdtp {
   {
     static unsigned int index_cache = 0;
 
-    if (time < EPSILON) return 0;
-    if (time >= durations_[F] - EPSILON) return phases_ - 1;
-
     if (index_cache >= phases_ || time < times_[index_cache])
       index_cache = 0;
 
