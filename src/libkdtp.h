@@ -156,12 +156,13 @@ namespace kdtp {
     double vmax_, amax_, jmax_, smax_;
     double init_[3], end_[3];
 
-    std::vector<double> times_;
-    std::vector<double> positions_;
-    std::vector<double> velocities_;
-    std::vector<double> accelerations_;
-    std::vector<double> jerks_;
-    std::vector<double> snaps_;
+    unsigned int phases_;
+    double times_[15];
+    double positions_[15];
+    double velocities_[15];
+    double accelerations_[15];
+    double jerks_[15];
+    double snaps_[15];
 
     double signs_[4];
     double durations_[12];

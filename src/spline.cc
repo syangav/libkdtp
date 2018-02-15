@@ -25,6 +25,7 @@
 namespace kdtp {
 
   Spline::Spline(const Dof &dof, double init[3], double end[3])
+    : phases_(0)
   {
     vmax_ = dof.getVelocityMax();
     amax_ = dof.getAccelerationMax();
@@ -847,68 +848,62 @@ namespace kdtp {
   void
   Spline::setValues()
   {
-    int index = 0;
-    double time = 0.;
-
-    times_.clear();
-    positions_.clear();
-    velocities_.clear();
-    accelerations_.clear();
-    jerks_.clear();
-    snaps_.clear();
-
-    times_.push_back(0);
-    positions_.push_back(init_[0]);
-    velocities_.push_back(init_[1]);
-    accelerations_.push_back(init_[2]);
-    jerks_.push_back(0);
-    snaps_.push_back(0);
-
-    durations_index phases[15] = {
+    static const durations_index phase_index[15] = {
       A1, A2, A1, B, C1, C2, C1, D, E1, E2, E1, G, H1, H2, H1
     };
+
     double snapsigns_[15] = {
       signs_[A], 0., -signs_[A], 0.,
       signs_[C], 0., -signs_[C], 0.,
       signs_[E], 0., -signs_[E], 0.,
-      signs_[H], 0., -signs_[H]};
+      signs_[H], 0., -signs_[H]
+    };
 
-    double next[5];
+    double nextq[5];
+    double time = 0.;
+
+    times_[0] = 0.;
+    positions_[0] = init_[0];
+    velocities_[0] = init_[1];
+    accelerations_[0] = init_[2];
+    jerks_[0] = 0.;
+    snaps_[0] = 0.;
+    phases_ = 0;
 
     for(int k = 0; k<15; k++) {
-      if (durations_[phases[k]] > EPSILON) {
-        time += durations_[phases[k]];
-        snaps_[index] = snapsigns_[k] * smax_;
+      if (durations_[phase_index[k]] > EPSILON) {
+        time += durations_[phase_index[k]];
+        snaps_[phases_] = snapsigns_[k] * smax_;
 
-        getAllAt(index, time, next);
+        getAllAt(phases_, time, nextq);
 
-        times_.push_back(time);
-        positions_.push_back(next[0]);
-        velocities_.push_back(next[1]);
-        accelerations_.push_back(next[2]);
-        jerks_.push_back(next[3]);
-        snaps_.push_back(next[4]);
-        index++;
+        phases_++;
+        times_[phases_] = time;
+        positions_[phases_] = nextq[0];
+        velocities_[phases_] = nextq[1];
+        accelerations_[phases_] = nextq[2];
+        jerks_[phases_] = nextq[3];
+        snaps_[phases_] = nextq[4];
       }
     }
+    phases_++;
   }
 
   unsigned int
   Spline::getIndexAt(double time) const
   {
-    static unsigned int last_call;
+    static unsigned int index_cache = 0;
 
     if (time < EPSILON) return 0;
-    if (time >= durations_[F] - EPSILON) return times_.size() - 1;
+    if (time >= durations_[F] - EPSILON) return phases_ - 1;
 
-    unsigned int current = last_call;
-    if (current >= times_.size() || time < times_[current])
-      current = 0;
-    while(current < times_.size()-1 && time > times_[current+1])
-      current++;
+    if (index_cache >= phases_ || time < times_[index_cache])
+      index_cache = 0;
 
-    last_call = current;
-    return current;
+    while(index_cache < phases_-1 && time > times_[index_cache + 1])
+      index_cache++;
+
+    return index_cache;
   }
 
   double
