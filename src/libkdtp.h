@@ -111,7 +111,7 @@ namespace kdtp {
     double getAccelerationAt(double time) const;
     double getJerkAt(double time) const;
     double getSnapAt(double time) const;
-    std::vector<double> getAllAt(double time) const;
+    void getAllAt(double time, double (&q)[5]) const;
 
     std::vector<double> getInit();
     std::vector<double> getEnd();
@@ -143,7 +143,7 @@ namespace kdtp {
     double getAccelerationAt(unsigned int index, double time) const;
     double getJerkAtLocal(unsigned int index, double local) const;
     double getJerkAt(unsigned int index, double time) const;
-    std::vector<double> getAllAt(unsigned int index, double time) const;
+    void getAllAt(unsigned int index, double time, double (&q)[5]) const;
 
     enum durations_index {
       A1, A2, B, C1, C2, D, E1, E2, G, H1, H2, F
@@ -186,12 +186,12 @@ namespace kdtp {
 
     double duration() const { return duration_; }
     unsigned int getNbSplines() const { return splines_.size(); }
-    std::vector<double> getPositionAt(double time) const;
-    std::vector<double> getVelocityAt(double time) const;
-    std::vector<double> getAccelerationAt(double time) const;
-    std::vector<double> getJerkAt(double time) const;
-    std::vector<double> getSnapAt(double time) const;
-    std::vector<std::vector<double> > getAllAt(double time) const;
+    void getPositionAt(double time, double *q) const;
+    void getVelocityAt(double time, double *q) const;
+    void getAccelerationAt(double time, double *q) const;
+    void getJerkAt(double time, double *q) const;
+    void getSnapAt(double time, double *q) const;
+    void getAllAt(double time, double (*q)[5]) const;
     State getStateAt(double time) const;
     void setDuration(double duration);
 

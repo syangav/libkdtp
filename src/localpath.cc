@@ -45,70 +45,46 @@ namespace kdtp {
       splines_[i].synchronize(duration_);
   }
 
-  std::vector<double>
-  LocalPath::getPositionAt(double time) const
+  void
+  LocalPath::getPositionAt(double time, double *q) const
   {
-    std::vector<double> position(splines_.size());
-
-    for(unsigned int i=0; i < splines_.size(); i++)
-      position[i] = splines_[i].getPositionAt(time);
-
-    return position;
+    for(unsigned int i = 0; i < splines_.size(); i++)
+      q[i] = splines_[i].getPositionAt(time);
   }
 
-  std::vector<double>
-  LocalPath::getVelocityAt(double time) const
+  void
+  LocalPath::getVelocityAt(double time, double *q) const
   {
-    std::vector<double> velocity(splines_.size());
-
-    for(unsigned int i=0; i < splines_.size(); i++)
-      velocity[i] = splines_[i].getVelocityAt(time);
-
-    return velocity;
+    for(unsigned int i = 0; i < splines_.size(); i++)
+      q[i] = splines_[i].getVelocityAt(time);
   }
 
-  std::vector<double>
-  LocalPath::getAccelerationAt(double time) const
+  void
+  LocalPath::getAccelerationAt(double time, double *q) const
   {
-    std::vector<double> acceleration(splines_.size());
-
-    for(unsigned int i=0; i< splines_.size(); i++)
-      acceleration[i] = splines_[i].getAccelerationAt(time);
-
-    return acceleration;
+    for(unsigned int i = 0; i< splines_.size(); i++)
+      q[i] = splines_[i].getAccelerationAt(time);
   }
 
-  std::vector<double>
-  LocalPath::getJerkAt(double time) const
+  void
+  LocalPath::getJerkAt(double time, double *q) const
   {
-    std::vector<double> jerk(splines_.size());
-
-    for(unsigned int i=0; i < splines_.size(); i++)
-      jerk[i] = splines_[i].getJerkAt(time);
-
-    return jerk;
+    for(unsigned int i = 0; i < splines_.size(); i++)
+      q[i] = splines_[i].getJerkAt(time);
   }
 
-  std::vector<double>
-  LocalPath::getSnapAt(double time) const
+  void
+  LocalPath::getSnapAt(double time, double *q) const
   {
-    std::vector<double> snap(splines_.size());
-
-    for(unsigned int i=0; i < splines_.size(); i++)
-      snap[i] = splines_[i].getSnapAt(time);
-
-    return snap;
+    for(unsigned int i = 0; i < splines_.size(); i++)
+      q[i] = splines_[i].getSnapAt(time);
   }
 
-  std::vector<std::vector<double> >
-  LocalPath::getAllAt(double time) const
+  void
+  LocalPath::getAllAt(double time, double (*q)[5]) const
   {
-    std::vector<std::vector<double> > all(splines_.size());
-
-    for(unsigned int i=0; i < splines_.size(); i++)
-      all[i] = splines_[i].getAllAt(time);
-
-    return all;
+    for(unsigned int i = 0; i < splines_.size(); i++)
+      splines_[i].getAllAt(time, q[i]);
   }
 
   State

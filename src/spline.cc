@@ -873,13 +873,14 @@ namespace kdtp {
       signs_[E], 0., -signs_[E], 0.,
       signs_[H], 0., -signs_[H]};
 
+    double next[5];
+
     for(int k = 0; k<15; k++) {
       if (durations_[phases[k]] > EPSILON) {
         time += durations_[phases[k]];
         snaps_[index] = snapsigns_[k] * smax_;
 
-        std::vector<double> next = getAllAt(index, time);
-        assert(next.size() > 4);
+        getAllAt(index, time, next);
 
         times_.push_back(time);
         positions_.push_back(next[0]);
@@ -972,18 +973,15 @@ namespace kdtp {
     return getJerkAtLocal(index, time - times_[index]);
   }
 
-  std::vector<double>
-  Spline::getAllAt(unsigned int index, double time) const
+  void
+  Spline::getAllAt(unsigned int index, double time, double (&q)[5]) const
   {
-    std::vector<double> ret(5);
-
     double local = time - times_[index];
-    ret[0] = getPositionAtLocal(index, local);
-    ret[1] = getVelocityAtLocal(index, local);
-    ret[2] = getAccelerationAtLocal(index, local);
-    ret[3] = getJerkAtLocal(index, local);
-    ret[4] = snaps_[index];
-    return ret;
+    q[0] = getPositionAtLocal(index, local);
+    q[1] = getVelocityAtLocal(index, local);
+    q[2] = getAccelerationAtLocal(index, local);
+    q[3] = getJerkAtLocal(index, local);
+    q[4] = snaps_[index];
   }
 
   double
@@ -1070,35 +1068,33 @@ namespace kdtp {
     return getSnapAt(getIndexAt(time));
   }
 
-  std::vector<double>
-  Spline::getAllAt(double time) const
+  void
+  Spline::getAllAt(double time, double (&q)[5]) const
   {
-    std::vector<double> ret(5);
-
     if (stay_still_) {
-      ret[0] = init_[0];
-      ret[1] = ret[2] = ret[3] = ret[4] = 0.;
-      return ret;
+      q[0] = init_[0];
+      q[1] = q[2] = q[3] = q[4] = 0.;
+      return;
     }
 
     if (time < EPSILON) {
-      ret[0] = init_[0];
-      ret[1] = init_[1];
-      ret[2] = init_[2];
-      ret[3] = 0.;
-      ret[4] = signs_[A] * smax_;
-      return ret;
+      q[0] = init_[0];
+      q[1] = init_[1];
+      q[2] = init_[2];
+      q[3] = 0.;
+      q[4] = signs_[A] * smax_;
+      return;
     }
 
     if (time > durations_[F] - EPSILON) {
-      ret[0] = end_[0];
-      ret[1] = end_[1];
-      ret[2] = end_[2];
-      ret[3] = 0.;
-      ret[4] = -signs_[H] * smax_;
-      return ret;
+      q[0] = end_[0];
+      q[1] = end_[1];
+      q[2] = end_[2];
+      q[3] = 0.;
+      q[4] = -signs_[H] * smax_;
+      return;
     }
 
-    return getAllAt(getIndexAt(time), time);
+    getAllAt(getIndexAt(time), time, q);
   }
 }
