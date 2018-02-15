@@ -26,6 +26,8 @@ namespace kdtp {
     double init_[3], end_[3];
 
     duration_ = duration;
+    splines_.reserve(nbDof);
+
     for(unsigned int i=0; i<nbDof; i++) {
       init_[0] = init.position()[i];
       init_[1] = init.velocity()[i];
