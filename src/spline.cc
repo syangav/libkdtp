@@ -916,10 +916,10 @@ namespace kdtp {
   {
     return
       positions_[index]
-      + velocities_[index] * local
-      + accelerations_[index] * local*local/2
-      + jerks_[index] * local*local*local/6
-      + snaps_[index] * local*local*local*local/24;
+      + (velocities_[index]
+         + (accelerations_[index] /2
+            + (jerks_[index] /6
+               + snaps_[index] * local/24) * local) * local) * local;
   }
 
   double
@@ -933,9 +933,9 @@ namespace kdtp {
   {
     return
       velocities_[index]
-      + accelerations_[index] * local
-      + jerks_[index] * local*local/2
-      + snaps_[index] * local*local*local/6;
+      + (accelerations_[index]
+         + (jerks_[index] /2
+            + snaps_[index] * local/6) * local) * local;
   }
 
   double
@@ -949,8 +949,8 @@ namespace kdtp {
   {
     return
       accelerations_[index]
-      + jerks_[index] * local
-      + snaps_[index] * local*local/2;
+      + (jerks_[index]
+         + snaps_[index] * local/2) * local;
   }
 
   double
@@ -976,12 +976,22 @@ namespace kdtp {
   void
   Spline::getAllAt(unsigned int index, double time, double (&q)[5]) const
   {
-    double local = time - times_[index];
-    q[0] = getPositionAtLocal(index, local);
-    q[1] = getVelocityAtLocal(index, local);
-    q[2] = getAccelerationAtLocal(index, local);
-    q[3] = getJerkAtLocal(index, local);
-    q[4] = snaps_[index];
+    double dt = time - times_[index];
+    double dt2_2 = dt * dt/2.;
+    double dt3_6 = dt2_2 * dt/3.;
+    double dt4_24 = dt3_6 * dt/4.;
+
+    double s = snaps_[index];
+    double j = jerks_[index];
+    double a = accelerations_[index];
+    double v = velocities_[index];
+    double p = positions_[index];
+
+    q[4] = s;
+    q[3] = j + s * dt;
+    q[2] = a + j * dt + s * dt2_2;
+    q[1] = v + a * dt + j * dt2_2 + s * dt3_6;
+    q[0] = p + v * dt + a * dt2_2 + j * dt3_6 + s * dt4_24;
   }
 
   double
