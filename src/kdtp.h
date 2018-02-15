@@ -38,10 +38,12 @@ namespace kdtp {
     return d * d;
   }
 
-  std::vector<double> poly_root_2(double a, double b, double c);
-  std::vector<double> poly_root_3(double a, double b, double c, double d);
-  std::vector<double> poly_root_4(double a, double b, double c, double d,
-                                  double e);
+  unsigned int poly_root_2(double a, double b, double c,
+                           double (&sol)[2]);
+  unsigned int poly_root_3(double a, double b, double c, double d,
+                           double (&sol)[3]);
+  unsigned int poly_root_4(double a, double b, double c, double d, double e,
+                           double (&sol)[4]);
 }
 
 

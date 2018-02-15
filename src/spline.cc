@@ -499,9 +499,10 @@ namespace kdtp {
     }
 
     int case_ABC = cases_abc_.at(index_int);
-    std::vector<double> sol;
+
+    double sol[4];
     double a, b, c, d;
-    unsigned int k;
+    unsigned int nsol, k;
 
     switch (case_ABC) {
       case 210:
@@ -524,8 +525,8 @@ namespace kdtp {
         b = -a0;
         c = -4*a0*sqrt(smax_)*(v0-vC)/a0;
         d = -(smax_*sqr(v0-vC)+a0_3)/a0;
-        sol = poly_root_4(1, a, b, c, d);
-        for(k = 0; k < sol.size(); k++)
+        nsol = poly_root_4(1, a, b, c, d, sol);
+        for(k = 0; k < nsol; k++)
           sol[k] = -sqr(sol[k]) + a0;
         break;
 
@@ -534,8 +535,8 @@ namespace kdtp {
         b = (jmax_2-2*a0*smax_)/smax_;
         c = -4*a0*jmax_/sqrt(smax_);
         d = -(a0*jmax_2-a0_2*smax_+2*jmax_*smax_*(v0-vC))/smax_;
-        sol = poly_root_4(1, a, b, c, d);
-        for(k = 0; k<sol.size();k++)
+        nsol = poly_root_4(1, a, b, c, d, sol);
+        for(k = 0; k < nsol; k++)
           sol[k] = -sqr(sol[k]) + a0;
         break;
 
@@ -544,8 +545,8 @@ namespace kdtp {
         b = -a0;
         c = 0;
         d = -(smax_*sqr(vC-v0)+a0_3)/a0;
-        sol = poly_root_4(1, a, b, c, d);
-        for(k = 0; k < sol.size(); k++)
+        nsol = poly_root_4(1, a, b, c, d, sol);
+        for(k = 0; k < nsol; k++)
           sol[k] = sqr(sol[k]);
         break;
 
@@ -554,8 +555,8 @@ namespace kdtp {
         b = (2*a0*smax_+jmax_2)/smax_;
         c = 4*a0*jmax_/sqrt(smax_);
         d = (a0*jmax_2+a0_2*smax_+2*jmax_*smax_*(v0-vC))/smax_;
-        sol = poly_root_4(1, a, b, c, d);
-        for(k = 0; k < sol.size(); k++)
+        nsol = poly_root_4(1, a, b, c, d, sol);
+        for(k = 0; k < nsol; k++)
           sol[k] = sqr(sol[k]) + a0;
         break;
 
@@ -566,10 +567,10 @@ namespace kdtp {
 
     double dV = EPSI4+1;
     double aB;
-    if (sol.size() > 0) {
+    if (nsol > 0) {
       double dVmin = fabs(vC - v_c(sol[0], 0., false));
       aB = sol[0];
-      for(unsigned int i = 1; i < sol.size(); i++) {
+      for(unsigned int i = 1; i < nsol; i++) {
         dV = fabs(vC - v_c(sol[i], 0., false));
         if (dV < dVmin) {
           dVmin = dV;
@@ -640,9 +641,10 @@ namespace kdtp {
     }
 
     int case_EGH = cases_egh_[index_int];
-    std::vector<double> sol;
+    double sol[4];
     double a, b, c, d;
-    unsigned int k;
+    unsigned int nsol, k;
+
     switch (case_EGH) {
       case 210:
         return sqr(jmax_-sqrt(
@@ -664,8 +666,8 @@ namespace kdtp {
         b = -aF;
         c = 0;
         d = -(smax_*sqr(vE-vF)+aF_3)/aF;
-        sol = poly_root_4(1, a, b, c, d);
-        for(k = 0; k<sol.size(); k++)
+        nsol = poly_root_4(1, a, b, c, d, sol);
+        for(k = 0; k < nsol; k++)
           sol[k] = sqr(sol[k]);
         break;
 
@@ -674,8 +676,8 @@ namespace kdtp {
         b = (2*aF*smax_+jmax_2)/smax_;
         c = 4*aF*jmax_/sqrt(smax_);
         d = (aF*jmax_2+aF_2*smax_+2*jmax_*smax_*(vE-vF))/smax_;
-        sol = poly_root_4(1, a, b, c, d);
-        for(k = 0; k<sol.size(); k++)
+        nsol = poly_root_4(1, a, b, c, d, sol);
+        for(k = 0; k < nsol; k++)
           sol[k] = sqr(sol[k])+aF;
         break;
 
@@ -684,8 +686,8 @@ namespace kdtp {
         b = -aF;
         c = 4*aF*sqrt(smax_)*(vF-vE)/aF;
         d = -(smax_*sqr(vE-vF)+aF_3)/aF;
-        sol = poly_root_4(1, a, b, c, d);
-        for(k = 0; k<sol.size(); k++)
+        nsol = poly_root_4(1, a, b, c, d, sol);
+        for(k = 0; k < nsol; k++)
           sol[k] = -sqr(sol[k])+aF;
         break;
 
@@ -694,8 +696,8 @@ namespace kdtp {
         b = (jmax_2-2*aF*smax_)/smax_;
         c = -4*aF*jmax_/sqrt(smax_);
         d = (aF_2*smax_-aF*jmax_2+2*jmax_*smax_*(vF-vE))/smax_;
-        sol = poly_root_4(1, a, b, c, d);
-        for(k = 0; k<sol.size(); k++)
+        nsol = poly_root_4(1, a, b, c, d, sol);
+        for(k = 0; k < nsol; k++)
           sol[k] = -sqr(sol[k])+aF;
         break;
 
@@ -707,10 +709,10 @@ namespace kdtp {
     double dV = EPSI4+1;
     double aG;
 
-    if (sol.size() > 0) {
+    if (nsol > 0) {
       double dVmin = fabs(vE - v_e(sol[0], 0, false));
       aG = sol[0];
-      for(unsigned int i = 1; i < sol.size(); i++) {
+      for(unsigned int i = 1; i < nsol; i++) {
         dV = fabs(vE - v_e(sol[i], 0., false));
         if (dV < dVmin) {
           dVmin = dV;
