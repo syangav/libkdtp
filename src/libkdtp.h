@@ -157,12 +157,12 @@ namespace kdtp {
     double init_[3], end_[3];
 
     unsigned int phases_;
-    double times_[15];
-    double positions_[15];
-    double velocities_[15];
-    double accelerations_[15];
-    double jerks_[15];
-    double snaps_[15];
+    double times_[16];
+    double positions_[16];
+    double velocities_[16];
+    double accelerations_[16];
+    double jerks_[16];
+    double snaps_[16];
 
     double signs_[4];
     double durations_[12];
