@@ -34,12 +34,6 @@ namespace kdtp {
 
     init_[0] = init[0];
     end_[0] = end[0];
-
-    if(init_[0] < dof.getPositionMin())
-      init_[0] = dof.getPositionMin();
-    if(init_[0] > dof.getPositionMax())
-      init_[0] = dof.getPositionMax();
-
     if(end_[0] < dof.getPositionMin())
       end_[0] = dof.getPositionMin();
     if(end_[0] > dof.getPositionMax())
@@ -52,14 +46,10 @@ namespace kdtp {
 
     init_[1] = init[1];
     end_[1] = end[1];
-
-    if(fabs(init_[1]) > vmax_) init_[1] = copysign(vmax_, init_[1]);
     if(fabs(end_[1]) > vmax_) end_[1] = copysign(vmax_, end_[1]);
 
     init_[2] = init[2];
     end_[2] = end[2];
-
-    if(fabs(init_[2]) > amax_) init_[2] = copysign(amax_, init_[2]);
     if(fabs(end_[2]) > amax_) end_[2] = copysign(amax_, end_[2]);
 
     stay_still_ =
