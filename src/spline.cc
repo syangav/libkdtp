@@ -1042,7 +1042,7 @@ namespace kdtp {
   {
     if (stay_still_) return 0.;
     if (time < EPSILON) return signs_[A] * smax_;
-    if (time > durations_[F] - EPSILON) return -signs_[H] * smax_;
+    if (time > durations_[F] - EPSILON) return 0.;
 
     return getSnapAt(getIndexAt(time));
   }
@@ -1070,7 +1070,7 @@ namespace kdtp {
       q[1] = end_[1];
       q[2] = end_[2];
       q[3] = 0.;
-      q[4] = -signs_[H] * smax_;
+      q[4] = 0.;
       return;
     }
 
