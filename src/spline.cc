@@ -1044,7 +1044,7 @@ namespace kdtp {
     if (time < EPSILON) return signs_[A] * smax_;
     if (time > durations_[F] - EPSILON) return 0.;
 
-    return getSnapAt(getIndexAt(time));
+    return snaps_[getIndexAt(time)];
   }
 
   void
