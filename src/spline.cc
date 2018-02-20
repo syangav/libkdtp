@@ -493,11 +493,11 @@ namespace kdtp {
                      -2*a0*jmax_2*smax_)-jmax_2)/(2*smax_);
 
       case 200:
-        a = 2*sqrt(smax_)*(v0-vC)/a0;
-        b = -a0;
-        c = -4*a0*sqrt(smax_)*(v0-vC)/a0;
-        d = -(smax_*sqr(v0-vC)+a0_3)/a0;
-        nsol = poly_root_4(1, a, b, c, d, sol);
+        a = 2*sqrt(smax_)*(v0-vC);
+        b = -a0_2;
+        c = -4*a0*sqrt(smax_)*(v0-vC);
+        d = -(smax_*sqr(v0-vC)+a0_3);
+        nsol = poly_root_4(a0, a, b, c, d, sol);
         for(k = 0; k < nsol; k++)
           sol[k] = -sqr(sol[k]) + a0;
         break;
@@ -513,11 +513,11 @@ namespace kdtp {
         break;
 
       case 2000:
-        a = 2*sqrt(smax_)*(vC-v0)/a0;
-        b = -a0;
+        a = 2*sqrt(smax_)*(vC-v0);
+        b = -a0_2;
         c = 0;
-        d = -(smax_*sqr(vC-v0)+a0_3)/a0;
-        nsol = poly_root_4(1, a, b, c, d, sol);
+        d = -(smax_*sqr(vC-v0)+a0_3);
+        nsol = poly_root_4(a0, a, b, c, d, sol);
         for(k = 0; k < nsol; k++)
           sol[k] = sqr(sol[k]);
         break;
@@ -636,11 +636,11 @@ namespace kdtp {
                             +4*jmax_*smax_2*(vE-vF)))/(2*smax_);
 
       case 200:
-        a = 2*sqrt(smax_)*(vF-vE)/aF;
-        b = -aF;
+        a = 2*sqrt(smax_)*(vF-vE);
+        b = -aF_2;
         c = 0;
-        d = -(smax_*sqr(vE-vF)+aF_3)/aF;
-        nsol = poly_root_4(1, a, b, c, d, sol);
+        d = -(smax_*sqr(vE-vF)+aF_3);
+        nsol = poly_root_4(aF, a, b, c, d, sol);
         for(k = 0; k < nsol; k++)
           sol[k] = sqr(sol[k]);
         break;
@@ -656,11 +656,11 @@ namespace kdtp {
         break;
 
       case 2000:
-        a = 2*sqrt(smax_)*(vE-vF)/aF;
-        b = -aF;
-        c = 4*aF*sqrt(smax_)*(vF-vE)/aF;
-        d = -(smax_*sqr(vE-vF)+aF_3)/aF;
-        nsol = poly_root_4(1, a, b, c, d, sol);
+        a = 2*sqrt(smax_)*(vE-vF);
+        b = -aF_2;
+        c = 4*aF*sqrt(smax_)*(vF-vE);
+        d = -(smax_*sqr(vE-vF)+aF_3);
+        nsol = poly_root_4(aF, a, b, c, d, sol);
         for(k = 0; k < nsol; k++)
           sol[k] = -sqr(sol[k])+aF;
         break;
