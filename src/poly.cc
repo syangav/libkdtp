@@ -38,7 +38,10 @@ kdtp::poly_root_2(double a, double b, double c, double (&sol)[2])
 {
   if (fabs(a) < kdtp::EPSILON) {
     if (fabs(b) < kdtp::EPSILON)
-      sol[0] = -c; /* XXX wtf? */
+      if (fabs(c) < kdtp::EPSILON)
+        sol[0] = 0;
+      else
+        return 0;
     else
       sol[0] = -c/b;
     return 1;
