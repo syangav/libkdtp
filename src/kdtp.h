@@ -33,7 +33,7 @@ namespace kdtp {
     return (d > 0.) - (d < -0.);
   }
 
-  static inline int sqr(double d)
+  static inline double sqr(double d)
   {
     return d * d;
   }
