@@ -849,7 +849,6 @@ namespace kdtp {
     velocities_[0] = init_[1];
     accelerations_[0] = init_[2];
     jerks_[0] = 0.;
-    snaps_[0] = 0.;
     phases_ = 0;
 
     for(int k = 0; k<15; k++) {
@@ -865,9 +864,9 @@ namespace kdtp {
         velocities_[phases_] = nextq[1];
         accelerations_[phases_] = nextq[2];
         jerks_[phases_] = nextq[3];
-        snaps_[phases_] = nextq[4];
       }
     }
+    snaps_[phases_] = 0.;
     phases_++;
   }
 
