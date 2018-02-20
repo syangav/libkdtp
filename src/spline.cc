@@ -735,10 +735,15 @@ namespace kdtp {
     double xC = x_c(aB);
     double xE = x_e(aG);
     double dX = xE-xC;
-    double tD = dX/vD;
+    double tD;
 
-    if (tD<0 || !std::isfinite(tD))
+    if (sign(vD) == 0)
       tD = 0.;
+    else {
+      tD = dX/vD;
+      if (tD < 0.) tD = 0.;
+    }
+
     durations_[D] = tD;
     durations_[F] =
       2*durations_[A1]
