@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018 LAAS/CNRS
+ * Copyright (c) 2016-2019 LAAS/CNRS
  * All rights reserved.
  *
  * Redistribution and use  in source  and binary  forms,  with or without
@@ -24,6 +24,7 @@ namespace kdtp {
   {
     unsigned int nbDof = robot_.getNbDof();
     double init_[3], end_[3];
+    double d;
 
     duration_ = duration;
     splines_.reserve(nbDof);
@@ -39,12 +40,21 @@ namespace kdtp {
 
       splines_.push_back(Spline(robot_.getDof(i), init_, end_));
 
-      if (duration_ < splines_[i].getDuration())
-        duration_ = splines_[i].getDuration();
+      /* get maximum duration */
+      d = splines_[i].getDuration();
+      if (duration_ < d) duration_ = d;
     }
 
+    /* synchronize to same (max) duration */
     for(unsigned int i = 0; i < splines_.size(); i++)
       splines_[i].synchronize(duration_);
+
+    /* get the actual max duration (due to dichotomy in synchronize(), all
+     * duration won't be strictly equal) */
+    for(unsigned int i = 0; i < splines_.size(); i++) {
+      d = splines_[i].getDuration();
+      if (duration_ < d) duration_ = d;
+    }
   }
 
   void
