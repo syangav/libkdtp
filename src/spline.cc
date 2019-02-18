@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016,2018 LAAS/CNRS
+ * Copyright (c) 2016,2018-2019 LAAS/CNRS
  * All rights reserved.
  *
  * Redistribution and use  in source  and binary  forms,  with or without
@@ -559,7 +559,7 @@ namespace kdtp {
 
     aB = (mina+maxa)/2;
     dV = vC - v_c(aB, 0.);
-    while(fabs(dV) > EPSI4 && fabs(mina-maxa) > EPSI4) {
+    while(fabs(dV) > EPSI4 && fabs(mina-maxa) > EPSILON) {
       if (dV>0)
         mina = aB;
       else
@@ -702,7 +702,7 @@ namespace kdtp {
 
     aG = (mina+maxa)/2;
     dV = vE - v_e(aG, 0.);
-    while(fabs(dV) > EPSI4 && fabs(maxa-mina) > EPSI4) {
+    while(fabs(dV) > EPSI4 && fabs(maxa-mina) > EPSILON) {
       if (dV>0)
         mina = aG;
       else
@@ -806,7 +806,7 @@ namespace kdtp {
       v2 = fabs(v);
       v = v2/2;
       dX = d_x(s*v);
-      while(fabs(dX)>EPSI4 && fabs(v1-v2)>EPSI4) {
+      while(fabs(dX)>EPSI4 && fabs(v1-v2)>EPSILON) {
         if (s*dX<0)
           v2 = v;
         else
@@ -990,7 +990,7 @@ namespace kdtp {
       double maxv = fabs(v_opt_);
       double vD = maxv/2;
       d_x(s*vD);
-      while(fabs(durations_[F]-tF_des)>EPSI4 && fabs(minv-maxv)>EPSI4/100) {
+      while(fabs(durations_[F]-tF_des)>EPSI4 && fabs(minv-maxv)>EPSILON) {
         if (durations_[F]<tF_des)
           maxv = vD;
         else
