@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016 LAAS/CNRS
+ * Copyright (c) 2016,2020 LAAS/CNRS
  * All rights reserved.
  *
  * Redistribution and use  in source  and binary  forms,  with or without
@@ -33,12 +33,17 @@ namespace kdtp {
 
   void Dof::setPositionMin(double xmin)
   {
-    xmin_ = xmin;
-    if (xmax_ < xmin_) std::swap(xmax_, xmin_);
+    setPositionMinMax(xmin, xmax_);
   }
 
   void Dof::setPositionMax(double xmax)
   {
+    setPositionMinMax(xmin_, xmax);
+  }
+
+  void Dof::setPositionMinMax(double xmin, double xmax)
+  {
+    xmin_ = xmin;
     xmax_ = xmax;
     if (xmax_ < xmin_) std::swap(xmax_, xmin_);
   }

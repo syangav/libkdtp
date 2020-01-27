@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018 LAAS/CNRS
+ * Copyright (c) 2016-2018,2020 LAAS/CNRS
  * All rights reserved.
  *
  * Redistribution and use  in source  and binary  forms,  with or without
@@ -44,6 +44,7 @@ namespace kdtp {
 
     void setPositionMin(double xmin);
     void setPositionMax(double xmax);
+    void setPositionMinMax(double xmin, double xmax);
     void setVelocityMax(double vmax);
     void setAccelerationMax(double amax);
     void setJerkMax(double jmax);
